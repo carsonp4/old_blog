@@ -1,0 +1,409 @@
+/**
+ * Site header
+ */
+.site-header {
+  border-top: 5px solid $grey-color-dark;
+  border-bottom: 1px solid $grey-color-light;
+  min-height: $spacing-unit * 1.865;
+
+  // Positioning context for the mobile navigation icon
+  position: relative;
+}
+
+.site-title {
+  @include relative-font-size(1.625);
+  font-weight: 300;
+  line-height: $base-line-height * $base-font-size * 2.25;
+  letter-spacing: -1px;
+  margin-bottom: 0;
+  float: left;
+
+  &,
+  &:visited {
+    color: $grey-color-dark;
+  }
+}
+
+.site-nav {
+  float: right;
+  line-height: $base-line-height * $base-font-size * 2.25;
+
+  .nav-trigger {
+      display: none;
+  }
+
+  .menu-icon {
+    display: none;
+  }
+
+  .page-link {
+    color: $text-color;
+    line-height: $base-line-height;
+
+    // Gaps between nav items, but not on the last one
+    &:not(:last-child) {
+      margin-right: 20px;
+    }
+  }
+
+  @include media-query($on-palm) {
+    position: absolute;
+    top: 9px;
+    right: $spacing-unit / 2;
+    background-color: $background-color;
+    border: 1px solid $grey-color-light;
+    border-radius: 5px;
+    text-align: right;
+
+    label[for="nav-trigger"] {
+      display: block;
+      float: right;
+      width: 36px;
+      height: 36px;
+      z-index: 2;
+      cursor: pointer;
+    }
+
+    .menu-icon {
+      display: block;
+      float: right;
+      width: 36px;
+      height: 26px;
+      line-height: 0;
+      padding-top: 10px;
+      text-align: center;
+
+      > svg {
+        fill: $grey-color-dark;
+      }
+    }
+
+    input ~ .trigger {
+      clear: both;
+      display: none;
+    }
+
+    input:checked ~ .trigger {
+      display: block;
+      padding-bottom: 5px;
+    }
+
+    .page-link {
+      display: block;
+      padding: 5px 10px;
+
+      &:not(:last-child) {
+        margin-right: 0;
+      }
+      margin-left: 20px;
+    }
+  }
+}
+
+
+
+/**
+ * Site footer
+ */
+.site-footer {
+  border-top: 1px solid $grey-color-light;
+  padding: $spacing-unit 0;
+}
+
+.footer-heading {
+  @include relative-font-size(1.125);
+  margin-bottom: $spacing-unit / 2;
+}
+
+.contact-list,
+.social-media-list {
+  list-style: none;
+  margin-left: 0;
+}
+
+.footer-col-wrapper {
+  @include relative-font-size(0.85);
+  color: $grey-color;
+  margin-left: -$spacing-unit / 2;
+  @extend %clearfix;
+}
+
+.footer-col {
+  float: left;
+  margin-bottom: $spacing-unit / 2;
+  padding-left: $spacing-unit / 2;
+}
+
+.footer-col-1 {
+  width: -webkit-calc(30% - (#{$spacing-unit} / 2));
+  width:         calc(30% - (#{$spacing-unit} / 2));
+}
+
+.footer-col-2 {
+  width: -webkit-calc(20% - (#{$spacing-unit} / 2));
+  width:         calc(20% - (#{$spacing-unit} / 2));
+}
+
+.footer-col-3 {
+  width: -webkit-calc(50% - (#{$spacing-unit} / 2));
+  width:         calc(50% - (#{$spacing-unit} / 2));
+}
+
+@include media-query($on-laptop) {
+  .footer-col-1,
+  .footer-col-2 {
+    width: -webkit-calc(50% - (#{$spacing-unit} / 2));
+    width:         calc(50% - (#{$spacing-unit} / 2));
+  }
+
+  .footer-col-3 {
+    width: -webkit-calc(100% - (#{$spacing-unit} / 2));
+    width:         calc(100% - (#{$spacing-unit} / 2));
+  }
+}
+
+@include media-query($on-palm) {
+  .footer-col {
+    float: none;
+    width: -webkit-calc(100% - (#{$spacing-unit} / 2));
+    width:         calc(100% - (#{$spacing-unit} / 2));
+  }
+}
+
+
+
+/**
+ * Page content
+ */
+.page-content {
+  padding: $spacing-unit 0;
+  flex: 1;
+}
+
+.page-heading {
+  @include relative-font-size(2);
+}
+
+.post-list-heading {
+  @include relative-font-size(1.75);
+}
+
+.post-list {
+  margin-left: 0;
+  list-style: none;
+
+  > li {
+    margin-bottom: $spacing-unit;
+  }
+}
+
+.post-meta {
+  font-size: $small-font-size;
+  color: $grey-color;
+}
+
+.post-link {
+  display: block;
+  @include relative-font-size(1.5);
+}
+
+
+
+/**
+ * Posts
+ */
+.post-header {
+  margin-bottom: $spacing-unit;
+}
+
+.post-title {
+  @include relative-font-size(2.625);
+  letter-spacing: -1px;
+  line-height: 1;
+
+  @include media-query($on-laptop) {
+    @include relative-font-size(2.25);
+  }
+}
+
+.post-content {
+  margin-bottom: $spacing-unit;
+
+  h1 {
+    @include relative-font-size(2.25);
+
+    @include media-query($on-laptop) {
+      @include relative-font-size(2);
+    }
+  }
+
+  h2 {
+    @include relative-font-size(2);
+
+    @include media-query($on-laptop) {
+      @include relative-font-size(1.75);
+    }
+  }
+
+  h3 {
+    @include relative-font-size(1.625);
+
+    @include media-query($on-laptop) {
+      @include relative-font-size(1.375);
+    }
+  }
+
+  h4 {
+    @include relative-font-size(1.25);
+
+    @include media-query($on-laptop) {
+      @include relative-font-size(1.125);
+    }
+  }
+}
+
+.featured-image-blog {
+  width: 100%;
+  height: 250px;
+  object-fit: cover;
+}
+
+.featured-image-post {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+}
+
+.blog-roll-image {
+  width: 75px;
+  height: 75px;
+  object-fit: cover;
+  float: left;
+}
+
+.banner-btn {
+  margin-top: 1em;
+}
+
+.banner-btn-item {
+  font-size: calc(8pt + 0.15vw); // responsive size, but keep a minimum.
+  padding-top: calc(0.5em + 0.08vw);
+  padding-bottom: calc(0.5em + 0.08vw);
+  padding-left: calc(0.5em + 0.08vw);
+  padding-right: calc(0.5em + 0.08vw);
+  color: black;
+  background-color: aliceblue;
+  text-align: center;
+  text-transform: uppercase;
+  font-weight: bold;
+  border: 1px solid white;
+
+  &:link {
+    text-decoration: none;
+  }
+  &:visited {
+    text-decoration: none;
+  }
+}
+
+
+
+// Styles for the top banner on the home page
+
+// Create three grid areas (boxes) that overlap each other, essentially creating three layers.
+// Grid box 1 (layer 1): Image
+// Grid box 2 (layer 2): Gradient overlay
+// Grid box 3 (layer 3): Call to action text/content
+.top-banner-section {
+  display: grid;
+  grid-template-columns: 1fr; // stretch to the full frame
+  grid-template-rows: 350px; // 350 pixels tall
+  grid-column-gap: 0px;
+  grid-row-gap: 0px;
+  align-content: center;
+  justify-content: center;
+
+  .banner-image-div {
+    grid-area: 1 / 1 / 2 / 2;
+  } // image
+  .banner-overlay-div {
+    grid-area: 1 / 1 / 2 / 2;
+  } // gradient or other overlay
+  .banner-text-div {
+    grid-area: 1 / 1 / 2 / 2;
+  } // overlay objects like text, buttons, etc.
+}
+
+// Banner image (layer 1)
+.banner-image {
+  display: grid;
+  min-width: 350px; // Do not resize to smaller than this.
+  width: 100%;
+  height: 100%;
+  object-fit: cover; // Using this so the image can be any size and still look halfway decent.
+}
+
+// Gradient overlay (layer 2)
+// gradient overlay going from black to transparent.
+// note: search for a gradient overlay generator to make this easier.
+.banner-overlay-div {
+  display: grid;
+  max-width: 100%;
+  background: black;
+  background: linear-gradient(
+    60deg,
+    rgba(0, 0, 0, 0.7777485994397759) 30%,
+    rgba(255, 255, 255, 0) 100%
+  ); // start at black at the bottom left'ish and goes at a 60% angle. This will make the white easy to read with nearly any image.
+}
+
+// Banner html components (layer 3)
+// banner text
+.banner-text-div {
+  display: grid;
+  align-items: center;
+  margin-left: 15px;
+  margin-right: 15px;
+}
+
+// Typograhy: *** This is all the stuff you change
+.banner-h1-text {
+  // font can get larger, but no smaller than 10 points.
+  font-size: calc(10pt + 0.15vw);
+  letter-spacing: 0.05em;
+  font-weight: bolder;
+  text-transform: uppercase;
+  color: white;
+}
+
+.banner-body-text {
+  // font can get larger, but no smaller than 10 points.
+  font-size: calc(10pt + 0.15vw);
+  margin-top: 0.5em;
+  color: white;
+  text-decoration: none;
+
+  &:hover {
+    color: white;
+  }
+  &:visited {
+    color: white;
+  }
+  &:active {
+    color: white;
+  }
+}
+
+.button {
+  background-color: #ADD8E6; /* Blue */
+  border: none;
+  color: white;
+  padding: 15px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  border-radius: 10px;
+  font-size: 16px;
+}
+
+
