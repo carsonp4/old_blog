@@ -4,5 +4,4 @@ title: About
 permalink: /about/
 ---
 
-Change this text with information about me and my blog.
-
+Hey! My name is Carson and I love data science projects around sports, film, and health!
