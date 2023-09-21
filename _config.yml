@@ -18,33 +18,22 @@
 # You can create any custom variable you would like, and they will be accessible
 # in the templates via {{ site.myvariable }}.
 
-title: Blog Title 
-email: author_email@email.com 
-description: "Change the description so that it describes your blog" 
-baseurl: "/stat386-blog-theme" # the name of the repository 
-url: "https://esnt.github.io" #  change this to "https://<your-github-username>.github.io"
-image: https://source.unsplash.com/random
-author: Your name
-copyright: ABCD # Your initials or what you want the copyright to be.  Leave empty for no copyright
-footer_description: 'The default image for the site header is a random image from 
-        <a href="https://source.unsplash.com/random" target="_blank"> Unsplash</a>. 
-        The default image for the blog post is from
-        <a href="https://unsplash.com/photos/DWpR-BpKlw0?utm_source=unsplash&utm_medium=referral&utm_content=creditShareLink" target="_blank"
-        >Unsplash by Mohamed Elsayed</a>. Students in Stat 386 using this theme should replace both images 
-        with their own.'
+title: "Carson's Data Science Blog"
+email: carsonpayne4@gmail.com
+description: "This is my blog to share my thoughts and projects about data science." 
+baseurl: 
+url: "https://carsonp4.github.io" #  change this to "https://<your-github-username>.github.io"
+image: https://media.licdn.com/dms/image/C5603AQFzEcRa0Emnxg/profile-displayphoto-shrink_400_400/0/1651436149790?e=1700697600&v=beta&t=HsFJG35_POFRJAwnYojjVUKJAJ8YZMZdk2Xwd_hgB4Y
+author: Carson Payne
+copyright: CAP # Your initials or what you want the copyright to be.  Leave empty for no copyright
+footer_description: "Hope you enjoy your stay!"
 
 
 # Social media users names.  Leave fields blank that you don't want displayed
-twitter_username: 386student
-github_username:  386student
-linkedin_username: 386student
-dribbble_username: 
-facebook_username: 386student
-flickr_username:
-instagram_username: 
-pinterest_username:
-youtube_username: 
-googleplus_username: 386student
+github_username:  carsonp4
+linkedin_username: carsonpayne
+facebook_username: Carson Payne
+instagram_username: carson_payne1
 
 plugins:
   - jekyll-feed
