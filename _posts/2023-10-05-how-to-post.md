@@ -1,8 +1,8 @@
 ---
 layout: post
-title:  "How to create a blog post"
-author: Shannon Tass
-description: A sample post with instructions and tips on how to create a new blog post.   
+title:  "How to build a machine learning model to give personalized movie recommendations"
+author: Carson Payne
+description: Learn how to download your IMDb data and build a machine-learning model to give personalized movie recommendations.    
 image: "/assets/images/image5.jpg"
 ---
 
