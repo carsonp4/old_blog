@@ -9,7 +9,7 @@ image: "/assets/images/ferris.webp"
 For over a year now, every time I watch a movie I hop on to IMDb to give the movie a score from 1-10 on how much I enjoy it. I have now rated over 300 titles and being a data scientist, want to know if I can build myself a database of movie recommendations based on the films I have liked historically. So, if you have rated some films on IMDb before, here I present to you code that you can easily replicate to produce your own recommendations.
 
 ## Step 1 - Gathering Data
-First, we need to obtain both a training dataset and a testing dataset. For the training set, we will use your own movie recommendations. To obtain this, go to your IMDb account, navigate to the ['Your Ratings' page](https://www.imdb.com/list/ratings/?ref_=helpms_ih_tm_votesfaqs), click on the three dots, and click 'Export'. If you don't have any films rated on IMDb and you want to replicate this project, you can use this user's data [here](https://github.com/carsonp4/carsonp4.github.io/blob/main/assets/Keith%20Ratings.csv).
+First, we need to obtain both a training dataset and a testing dataset. For the training set, we will use your own movie recommendations. To obtain this, go to your IMDb account, navigate to the ['Your Ratings' page](https://www.imdb.com/list/ratings/?ref_=helpms_ih_tm_votesfaqs), click on the three dots, and click 'Export'. I will be using my own ratings for this project but if you don't have any films rated on IMDb and you want to replicate this project, you can use this user's data [here](https://github.com/carsonp4/carsonp4.github.io/blob/main/assets/Keith%20Ratings.csv).
 
 For the testing set, we just need a list of movies that we want to make movie recommendations from. Some lists that I found which can be downloaded from IMDb are:
 
@@ -109,5 +109,81 @@ biglist = biglist.reset_index(drop = True) # Resetting index
 ```
 
 ## Step 3 - Machine Learning
+
+I chose to use an XGBoost model for this example but mostly any other model should work fine as well. Below is the code that can be copied for your own recommendations and if you are interested in learning more about the mechanics of XGBoost, I highly recommend checking out [this tutorial](https://www.datacamp.com/tutorial/xgboost-in-python).
+
+```
+# Seperating out the training and response variables
+X = ratings.drop(columns=['Rating'])  # Training variable
+y = ratings['Rating']  # Target variable
+
+# Splitting the data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Setting up XGBoost hyperparameter tuning with GridSearchCV
+xgboost_model = xgb.XGBRegressor(objective='reg:squarederror', n_estimators=1000)
+param_grid = {
+    'min_child_weight': [1, 5, 10],
+    'max_depth': [3, 4, 5],
+    'learning_rate': [0.01, 0.1, 0.2],
+    'gamma': [0, 0.1, 0.2],
+    'subsample': [0.7, 0.8, 0.9],
+    'colsample_bytree': [0.7, 0.8, 0.9]
+}
+grid_search = GridSearchCV(estimator=xgboost_model, param_grid=param_grid,
+                           scoring='neg_mean_squared_error', cv=5)
+
+# Fitting The Model (this may take a while to run)
+grid_search.fit(X_train, y_train)
+
+# Getting the best hyperparameters
+best_params = grid_search.best_params_
+
+# Training the final model with the best hyperparameters
+xgboost_model_final = xgb.XGBRegressor(objective='reg:squarederror', n_estimators=1000, **best_params)
+xgboost_model_final.fit(X_train, y_train)
+```
+
+## Step 4 - Getting Results
+
+We can now take our model and run it on our testing set of movies to get recommendations. 
+
+```
+y_pred = xgboost_model_final.predict(biglist) # Getting predictions
+```
+
+We can then call back to the join table we made at the beginning and add in the predictions to see what our recommendations are.
+
+```
+join['Predicted_Rating'] = y_pred # Joining in movie rating predictions
+```
+
+And now here are the top 20 movies that the model recommends for me!
+
+```
+join.sort_values(by='Predicted_Rating',ascending=False).head(20)
+```
+<img width="952" alt="Screen Shot 2023-10-05 at 2 04 53 PM" src="https://github.com/carsonp4/carsonp4.github.io/assets/98862067/08e7015b-c1bd-4a03-bf28-3315df654f36">
+
+I find these results to be really interesting and honestly, pretty accurate. Of these 20 films, I actually have seen 8 of them before I started rating films on IMDb and I would rate each of them at least 8/10. 
+
+For fun, I also checked to see which 10 movies the model thinks I would dislike the most.
+
+```
+join.sort_values(by='Predicted_Rating').head(20)
+```
+
+<img width="947" alt="Screen Shot 2023-10-05 at 2 08 13 PM" src="https://github.com/carsonp4/carsonp4.github.io/assets/98862067/98f5644e-f7ac-4c82-b297-076189e2f78e">
+
+I sadly have not seen any of these films yet but I am intrigued by a few of them so I might have to check a couple out to verify if my model is correct. 
+
+I also decided to see for fun which movies above an average rating of _ the model predicts I would like the most when compared to IMDb users. 
+
+```
+join.assign(Rating_Difference=lambda x: x['Predicted_Rating'] - x['IMDb Rating']).sort_values('Rating_Difference',ascending=False).head(20)
+```
+<img width="756" alt="Screen Shot 2023-10-05 at 2 13 36 PM" src="https://github.com/carsonp4/carsonp4.github.io/assets/98862067/6be2658e-e36f-42e4-b099-43a5bcd64db9">
+
+A lot of these movies are also on my top recommendations list but looking at rating differences could be a good way for me to find some low-rated movies by others that could become my hidden gems or some high-rated movies that become my hot takes. 
 
 
