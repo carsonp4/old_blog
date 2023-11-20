@@ -6,12 +6,14 @@ description: Using web scraping and an API, here is how I created a dataset that
 image: /assets/images/film-awards.jpeg
 ---
 
-Every year as the holiday season starts coming upon us, normal people start looking forward to Christmas, Hanukah, and the New Year but a select few other people are also looking forward to a different season- FILM AWARDS SEASON! Each year hundreds of films compete in dozens of different award shows for recognition of their craft. Often, winning a big award like an Oscar or Golden Globe propels filmmakers into new chapters in their careers, opening doors that were previously closed to them. No wonder big studios sometimes spend upwards of $40 million dollars just on campaigning their film to those voting on who wins the most coveted awards. 
+Every year as the holiday season starts coming upon us, normal people start looking forward to Christmas, Hanukah, and the New Year but a select few other people are also looking forward to a different season- FILM AWARDS SEASON! Each year hundreds of films compete in dozens of different award shows for recognition of their craft. Often, winning a big award like an Oscar or Golden Globe propels filmmakers into new chapters in their careers, opening doors that were previously closed to them. No wonder [big studios sometimes spend upwards of $40 million dollars](https://www.vulture.com/2019/02/how-netflix-tried-and-failed-to-buy-a-best-picture-oscar.html) just on campaigning their film to those voting on who wins the most coveted awards. 
 
 With this in mind, I started wondering if it would be possible to actually predict who is most likely to win certain awards. After searching the internet for a dataset that would contain all the information I might need, I discovered there was nothing of the sort. So like any good data scientist, I got to work creating my own dataset with information on films from this century and how they performed in the film awards. 
 
+[Here is a link to repository containing all of the code and data from this analysis.](https://github.com/carsonp4/Final-Project/tree/main)
+
 ## Part 1 - Scraping Awards Data
-The first thing that I need to do is scrape data from each awards show. There are a couple of different sources on the internet to get this data. I could scrape directly from the award websites, Wikipedia, or iMDB. I chose to go with iMDB mostly because of the consistent format between awards shows. 
+The first thing that I need to do is scrape data from each awards show. There are a couple of different sources on the internet to get this data. I could scrape directly from the [award websites](https://awardsdatabase.oscars.org/), [Wikipedia](https://en.wikipedia.org/wiki/95th_Academy_Awards), or [iMDB](https://www.imdb.com/event/ev0000003/2023/1/?ref_=ev_eh). I chose to go with iMDB mostly because of the consistent format between awards shows. 
 
 First, here are all the packages I used for this project that you can go ahead and load in.
 
@@ -165,7 +167,7 @@ for l in range(len(guilds)):
         all_awards.append(ceremony)
 ```
 
-After doing that web scrapping, I went ahead and concatenated all of the data frames and ended up with this huge list of information.
+After doing that web scrapping, I went ahead and concatenated all of the data frames and ended up with [this huge list of information.](https://github.com/carsonp4/Final-Project/blob/main/all_awards.csv)
 
 ```
 # Puts all of the dataframes together        
@@ -175,7 +177,7 @@ all_awards = pd.concat(all_awards, ignore_index=True)
 
 
 ## Part 2 - Cleaning the Scraped Data
-Now that I have the different information on each of the film awards, I want to make this dataset more usable for machine learning. This involved cleaning this data a lot. Here is some of the things I did to make this dataset better.
+Now that I have the different information on each of the film awards, I want to make this dataset more usable for machine learning. This involved cleaning this data a lot. Here are some of the things I did to make this dataset better.
 
 The first thing I wanted to do was remove any sort of award from the dataset that did not pertain to the original question at hand. That included any sort of television awards, student/newcomer awards, or awards that were geo-specific. Here is the list of keywords I used to remove entries from my data:
 
@@ -317,7 +319,7 @@ clean_df['ceremony'] = clean_df['ceremony'].replace('ASC Award', 'ASC')
 clean_df['ceremony'] = clean_df['ceremony'].replace('WGA Award (Screen)', 'WGA')
 ```
 
-The final step in cleaning the scrapped data is to go ahead and pivot the data. I wanted it to be so that each award from each award show had its own binomial column for nominees and winners because it would make machine learning easier in the future. Here is the code I used as well as the final scrapped and cleaned dataset.
+The final step in cleaning the scrapped data is to go ahead and pivot the data. I wanted it to be so that each award from each award show had its own binomial column for nominees and winners because it would make machine learning easier in the future. Here is the code I used as well as [the final scrapped and cleaned dataset.](https://github.com/carsonp4/Final-Project/blob/main/result_df.csv)
 
 ```
 # Create a new column for each combination of ceremony, award, and nominee
@@ -417,7 +419,7 @@ So, this code does work. Everything about it is functional but here is the probl
 
 ## Step 4 - Using the OMDB API For Individual Movie Data
 
-With my overcomplicated solution behind me, this is when I discovered the API of my dreams- OMDB (open movie database). This API was pretty much built for this project. I was able to give the API the iMDB film ID and it returned almost all of the information I wanted previously and more! You will need to sign up for an account to get an API key but it is all free. I would recommend donating to the creator if you are able to though because this API is wicked.
+With my overcomplicated solution behind me, this is when I discovered the API of my dreams- [OMDB](https://www.omdbapi.com/) (open movie database). This API was pretty much built for this project. I was able to give the API the iMDB film ID and it returned almost all of the information I wanted previously and more! You will need to sign up for an account to get an API key but it is all free. I would recommend [donating to the creator](https://www.omdbapi.com/donate.htm) if you are able to though because this API is wicked.
 
 Here is the code I used to fill up the different categories for each film:
 
@@ -459,7 +461,7 @@ for i in tqdm(range(len(movies)), desc="Processing"):
     movies["Metascore"][i] = data["Metascore"]
     movies["Boxoffice"][i] = data["BoxOffice"] if "BoxOffice" in data else None
 ```
-Just like that, I had a dataset for each film's unique data.
+Just like that, I had a [dataset for each film's unique data.](https://github.com/carsonp4/Final-Project/blob/main/movies.csv)
 
 <img width="788" alt="Screen Shot 2023-11-20 at 10 17 28 AM" src="https://github.com/carsonp4/carsonp4.github.io/assets/98862067/7fce08b2-6202-4c0e-b756-9da10e4fccfc">
 
@@ -559,7 +561,7 @@ apidf.set_index(['film_id', 'Title'], inplace=True)
 apidf.drop(columns=["Release", "Noms"], inplace=True)
 ```
 
-And just like that, a huge data frame of directors, writers, languages, countries, and a bunch of other data has been created. Here is a sample of what it looks like:
+And just like that, a [huge data frame](https://github.com/carsonp4/Final-Project/blob/main/apidf.csv) of directors, writers, languages, countries, and a bunch of other data has been created. Here is a sample of what it looks like:
 
 <img width="803" alt="Screen Shot 2023-11-20 at 10 22 23 AM" src="https://github.com/carsonp4/carsonp4.github.io/assets/98862067/671292cf-295e-40ba-b43a-5306a66e4e28">
 
@@ -584,7 +586,7 @@ maindf = pd.merge(apidf, resultdf, left_index=True, right_index=True)
 maindf.set_index(['Title'], inplace=True)
 ```
 
-Here is a snippet of the gigantic data frame:
+Here is a snippet of the [gigantic data frame:](https://github.com/carsonp4/Final-Project/blob/main/maindf.csv)
 
 <img width="979" alt="Screen Shot 2023-11-20 at 10 26 31 AM" src="https://github.com/carsonp4/carsonp4.github.io/assets/98862067/f7ad4f8f-7d50-42a7-9a68-f2bfffcc9538">
 
