@@ -173,3 +173,147 @@ all_awards = pd.concat(all_awards, ignore_index=True)
 ```
 <img width="866" alt="Screen Shot 2023-11-20 at 9 33 34 AM" src="https://github.com/carsonp4/carsonp4.github.io/assets/98862067/82157513-5f6a-492a-ac52-c63f941d87c9">
 
+
+## Part 2 - Cleaning the Scraped Data
+Now that I have the different information on each of the film awards, I want to make this dataset more usable for machine learning. This involved cleaning this data a lot. Here is some of the things I did to make this dataset better.
+
+The first thing I wanted to do was remove any sort of award from the dataset that did not pertain to the original question at hand. That included any sort of television awards, student/newcomer awards, or awards that were geo-specific. Here is the list of keywords I used to remove entries from my data:
+
+```
+# Removing different awards that aren't relevant to this analysis
+film_awards = all_awards[~all_awards['award'].str.contains('Tele|Serie|Short|Commer|Show|Event|Breakthrough|Current|Music Video|British|Children|Daytime|Special Award|Student|Debut|First|Non-The|Under|Pilot|DVD|Reality|Musical|Talk|Variety Special', case=False, na=False)]
+```
+
+Next, I went through all of the remaining film awards and sorted them into shorter naming conventions. For example, I took every film that had anything to do with costume design and renamed it to costume_design. I could have been more explicit here for certain categories but for now, this will do. 
+
+```
+Adapted_Screenplay = ["Adapted Screenplay", "Best Adapted Screenplay", "Best Screenplay (Adapted)", "Best Screenplay - Adapted", "Best Screenplay Based on Material Previously Produced or Published", "Best Writing, Adapted Screenplay", "Best Writing, Screenplay Based on Material Previously Produced or Published"]
+Animated = ["Animated Film", "Best Animated Feature", "Best Animated Feature Film", "Best Animated Feature Film of the Year", "Best Animated Featured Film", "Best Animated Film", "Best Motion Picture - Animated", "Outstanding Achievement in Sound Mixing for Motion Pictures - Animated"]
+Art_Direction = ["Best Achievement in Art Direction", "Best Art Direction-Set Decoration"]
+Casting = ["Best Casting", "Outstanding Performance by a Cast in a Motion Picture", "Outstanding Performance by a Cast in a Theatrical Motion Picture", "Outstanding Performance by the Cast of a Theatrical Motion Picture"]
+Cinematography = ["Best Achievement in Cinematography", "Best Cinematography"]
+Costume_Design = ["Best Achievement in Costume Design", "Best Costume Design"]
+Directing = ["Best Achievement in Directing", "Best Director", "Best Director - Motion Picture"]
+Documentary = ["Best Documentary", "Best Documentary Feature", "Best Documentary Film", "Best Documentary, Feature", "Best Documentary, Features", "Documentary", "Outstanding Achievement in Cinematography in Documentary Film", "Outstanding Achievement in Cinematography in Non-Fiction Filmmaking", "Outstanding Achievement in Sound Mixing for Motion Pictures - Documentary", "Outstanding Directorial Achievement in Documentary", "World Cinema - Documentary"]
+Documentary_Screenplay = ["Best Documentary Screenplay", "Documentary Screenplay"]
+Editing = ["Best Achievement in Film Editing", "Best Edited Feature Film - Comedy", "Best Edited Feature Film - Dramatic", "Best Editing", "Best Film Editing"]
+Edited_Animated = ["Best Edited Animated Feature Film"]
+Edited_Documentary = ["Best Edited Documentary", "Best Edited Documentary - Feature", "Best Edited Documentary - Theatrical", "Best Edited Documentary Film"]
+Film = ["Best Feature", "Best Film", "Best Motion Picture - Drama", "Best Motion Picture of the Year", "Best Picture", "Contemporary Film", "Dramatic", "Fantasy Film", "Feature Film", "Outstanding Achievement in Cinematography in Feature Film", "Outstanding Achievement in Cinematography in Theatrical Feature Film", "Outstanding Achievement in Cinematography in Theatrical Releases", "Outstanding Achievement in Sound Mixing for Motion Pictures", "Outstanding Achievement in Sound Mixing for Motion Pictures - Live Action", "Outstanding Achievement in Sound Mixing for a Feature Film", "Outstanding Directorial Achievement in Feature Film", "Outstanding Directorial Achievement in Motion Pictures", "Outstanding Directorial Achievement in Theatrical Feature Film", "Period Film", "Period or Fantasy Film", "World Cinema - Dramatic"]
+International = ["Best Foreign Film",  "Best International Feature Film", "Best International Film"]
+Makeup_Hair = ["Best Achievement in Makeup", "Best Achievement in Makeup and Hairstyling", "Best Make Up & Hair", "Best Make Up/Hair", "Best Makeup", "Best Makeup and Hair"]
+Non_English = ["Best Film Not in the English Language", "Best Film not in the English Language", "Best Foreign Language Film", "Best Foreign Language Film of the Year", "Best Motion Picture - Foreign Language", "Best Motion Picture - Non-English Language"]
+Orignial_Screenplay = ["Best Original Screenplay", "Best Screenplay (Original)", "Best Screenplay - Original", "Best Screenplay Written Directly for the Screen", "Best Writing, Original Screenplay", "Best Writing, Screenplay Written Directly for the Screen", "Original Screenplay"]
+Score = ["Best Achievement in Music Written for Motion Pictures (Original Score)", "Best Achievement in Music Written for Motion Pictures, Original Score", "Best Music, Original Score", "Best Original Music", "Best Original Score - Motion Picture", "Original Music", "Original Score"]
+Screenplay = ["Best Screenplay", "Best Screenplay - Motion Picture"]
+Song = ["Best Achievement in Music Written for Motion Pictures (Original Song)", "Best Achievement in Music Written for Motion Pictures, Original Song", "Best Music, Original Song", "Best Original Song - Motion Picture"]
+Sound = ["Best Achievement in Sound Editing", "Best Achievement in Sound Mixing", "Best Sound", "Best Sound Editing", "Best Sound Mixing", "Outstanding Sound Mixing for Motion Pictures"]
+Sound_Effects = ["Best Effects, Sound Effects Editing"]
+Stunt = ["Outstanding Action Performance by a Stunt Ensemble in a Motion Picture", "Outstanding Performance by a Stunt Ensemble in a Motion Picture"]
+Production_Design = ["Best Achievement in Production Design", "Best Production Design", "Best Production Design/Art Direction"]
+Visual_Effects = ["Best Achievement in Special Visual Effects", "Best Achievement in Visual Effects", "Best Effects, Visual Effects", "Best Special Visual Effects", "Best Visual Effects"]
+
+Lead = ["Best Lead Performance"]
+Support = ["Best Supporting Performance"]
+Lead_Actor = ["Best Actor in a Leading Role", "Best Leading Actor", "Best Male Lead", "Best Performance by an Actor in a Leading Role", "Best Performance by an Actor in a Motion Picture - Drama", "Outstanding Performance by a Male Actor in a Leading Role"]
+Support_Actor = ["Best Actor in a Supporting Role", "Best Performance by an Actor in a Supporting Role", "Best Performance by an Actor in a Supporting Role in Any Motion Picture", "Best Performance by an Actor in a Supporting Role in a Motion Picture", "Best Supporting Actor", "Best Supporting Male", "Outstanding Performance by a Male Actor in a Supporting Role"]
+Lead_Actress = ["Best Actress in a Leading Role", "Best Female Lead", "Best Leading Actress", "Best Performance by an Actress in a Leading Role", "Best Performance by an Actress in a Motion Picture - Drama", "Outstanding Performance by a Female Actor in a Leading Role"]
+Support_Actress = ["Best Actress in a Supporting Role", "Best Performance by an Actress in a Supporting Role", "Best Performance by an Actress in a Supporting Role in Any Motion Picture", "Best Performance by an Actress in a Supporting Role in a Motion Picture", "Best Supporting Actress", "Best Supporting Female", "Outstanding Performance by a Female Actor in a Supporting Role"]
+```
+
+Then with these lists of award names, I could create a dictionary and then rename the awards in the dataframe.
+
+```
+# This creates a dictionary of the different awards from the work above
+
+award_mapping = {
+    "Adapted_Screenplay": Adapted_Screenplay,
+    "Animated": Animated,
+    "Art_Direction": Art_Direction,
+    "Casting": Casting,
+    "Cinematography": Cinematography,
+    "Costume_Design": Costume_Design,
+    "Directing": Directing,
+    "Documentary": Documentary,
+    "Documentary_Screenplay": Documentary_Screenplay,
+    "Editing": Editing,
+    "Edited_Animated": Edited_Animated,
+    "Edited_Documentary": Edited_Documentary,
+    "Film": Film,
+    "International": International,
+    "Makeup_Hair": Makeup_Hair,
+    "Non_English": Non_English,
+    "Orignial_Screenplay": Orignial_Screenplay,
+    "Score": Score,
+    "Screenplay": Screenplay,
+    "Song": Song,
+    "Sound": Sound,
+    "Sound_Effects": Sound_Effects,
+    "Stunt": Stunt,
+    "Production_Design": Production_Design,
+    "Visual_Effects": Visual_Effects,
+    "Lead": Lead,
+    "Support": Support,
+    "Lead_Actor": Lead_Actor,
+    "Support_Actor": Support_Actor,
+    "Lead_Actress": Lead_Actress,
+    "Support_Actress": Support_Actress
+}
+
+for new_value, old_values in award_mapping.items():
+    film_awards['award'] = film_awards['award'].replace(old_values, new_value)
+```
+
+The next thing I needed to do was make sure that every entry in the list had an iMDB film ID. I scraped the first 3 id's from each nomination but a few (looking at you Producers Guild of America) awards listed a lot of people before the film. So I manually went ahead and found the missing film ID for the few entries.
+
+```
+film_awards.at[8300, 'id2'] = "tt0243017"
+film_awards.at[8301, 'id2'] = "tt0248845"
+film_awards.at[8302, 'id2'] = "tt0245501"
+film_awards.at[8303, 'id2'] = "tt0242587"
+film_awards.at[8351, 'id2'] = "tt0282864"
+film_awards.at[8353, 'id2'] = "tt0274622"
+film_awards.at[12774, 'id2'] = "tt0169547"
+film_awards = film_awards.drop(12810)
+film_awards.at[12819, 'id2'] = "tt0190332"
+film_awards.at[12834, 'id2'] = "tt0268978"
+film_awards.at[12912, 'id2'] = "tt0299658"
+film_awards.at[12958, 'id2'] = "tt0167260"
+film_awards.at[13006, 'id2'] = "tt0405159"
+film_awards.at[13050, 'id2'] = "tt0388795"
+film_awards.at[13379, 'id2'] = "tt1024648"
+film_awards.at[13469, 'id2'] = "tt1454468"
+film_awards.at[13519, 'id2'] = "tt2562232"
+film_awards.at[13559, 'id2'] = "tt1663202"
+film_awards.at[13563, 'id2'] = "tt1895587"
+film_awards.at[13679, 'id2'] = "tt5580390"
+```
+
+Then I went ahead and grabbed the film ID from each row and made that a new column. I then selected the columns I needed from the scrapped data, cleaned up the year variable, and renamed the film awards to be a bit more reader-friendly. 
+
+```
+# Making a column of all the film id's
+film_awards['tt_values'] = film_awards.apply(lambda row: list(set([value for value in row if isinstance(value, str) and value.startswith('tt')])), axis=1)
+
+# Selecting the film_id from each movie
+film_awards['film_id'] = film_awards['tt_values'].apply(lambda x: x[0] if x else None)
+
+# Selecting all the columns we want to use now
+clean_df = film_awards[["year", "ceremony","award", "nominated", "winner", "film_id"]]
+
+# Cleaning the year varuable to just be the year digits
+clean_df['year'] = clean_df['year'].str.extract('(\d+)', expand=False)
+
+# Renamng the award names to be more reader friendly
+clean_df['ceremony'] = clean_df['ceremony'].replace('BAFTA Film Award', 'BAFTA')
+clean_df['ceremony'] = clean_df['ceremony'].replace('Golden Globe', 'GG')
+clean_df['ceremony'] = clean_df['ceremony'].replace('Independent Spirit Award', 'Spirit')
+clean_df['ceremony'] = clean_df['ceremony'].replace('Grand Jury Prize', 'Sundance')
+clean_df['ceremony'] = clean_df['ceremony'].replace('Actor', 'SAG')
+clean_df['ceremony'] = clean_df['ceremony'].replace('DGA Award', 'DGA')
+clean_df['ceremony'] = clean_df['ceremony'].replace('Excellence in Production Design Award', 'ADG')
+clean_df['ceremony'] = clean_df['ceremony'].replace('C.A.S. Award', 'CAS')
+clean_df['ceremony'] = clean_df['ceremony'].replace('ASC Award', 'ASC')
+clean_df['ceremony'] = clean_df['ceremony'].replace('WGA Award (Screen)', 'WGA')
+```
+
