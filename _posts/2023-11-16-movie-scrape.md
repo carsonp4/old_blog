@@ -317,3 +317,150 @@ clean_df['ceremony'] = clean_df['ceremony'].replace('ASC Award', 'ASC')
 clean_df['ceremony'] = clean_df['ceremony'].replace('WGA Award (Screen)', 'WGA')
 ```
 
+The final step in cleaning the scrapped data is to go ahead and pivot the data. I wanted it to be so that each award from each award show had its own binomial column for nominees and winners because it would make machine learning easier in the future. Here is the code I used as well as the final scrapped and cleaned dataset.
+
+```
+# Create a new column for each combination of ceremony, award, and nominee
+df_nominated = clean_df.pivot_table(index=['film_id', 'year'], columns=['ceremony', 'award'], values='nominated', aggfunc='max', fill_value=0)
+
+# Create a new column for each combination of ceremony, award, and winner
+df_winner = clean_df.pivot_table(index=['film_id', 'year'], columns=['ceremony', 'award'], values='winner', aggfunc='max', fill_value=0)
+
+# Adding nominated and winner tags to the columns
+df_nominated.columns = [f'{col}_nominated' for col in df_nominated.columns]
+df_winner.columns = [f'{col}_winner' for col in df_winner.columns]
+
+# Concatenate the DataFrames along the columns
+result_df = pd.concat([df_nominated, df_winner], axis=1)
+
+# Reset the index to make film_id and year regular columns
+result_df.reset_index(inplace=True)
+
+# Fill NaN values with 0 (if any)
+result_df.fillna(0, inplace=True)
+
+# Convert all columns from 2 onwards to numeric
+result_df.iloc[:, 2:] = result_df.iloc[:, 2:].apply(pd.to_numeric, errors='coerce')
+
+# Group by 'film_id' and select the maximum value for 'year' and sum for other columns
+agg_dict = {col: 'sum' for col in result_df.columns[2:]}
+agg_dict['year'] = 'max'
+result_df = result_df.groupby('film_id', as_index=False).agg(agg_dict)
+
+# Reorder columns to have 'year' as the second column
+column_order = ['film_id', 'year'] + [col for col in result_df.columns if col not in ['film_id', 'year']]
+result_df = result_df[column_order]
+result_df = result_df.rename(columns={'year': 'award_year'})
+```
+<img width="890" alt="Screen Shot 2023-11-20 at 9 48 42 AM" src="https://github.com/carsonp4/carsonp4.github.io/assets/98862067/f16db691-69d7-40b8-9d5e-757cd237e345">
+
+## Step 3 - Scraping iMDB For Individual Movie Data
+
+So the next thing I wanted to do was collect a bit more data on each of the movies in the dataset. My first idea was to scrape iMDB some more because I have all the film IDs. I went through a film page and thought I would be able to scrape all of the following data:
+
+```
+# Making Dataframe of columns to populate
+movies_columns = ["Title", "Rating", "IMDB", "Metascore", "Noms", "Director", "Writer", 
+           "Release", "Country", "Language", "Budget", "Boxoffice", 
+           "Runtime", "Color", "Aspect"]
+
+# Creating a new DataFrame with blank columns and the same index as result_df
+movies = pd.DataFrame(index=result_df.index, columns=movies_columns)
+```
+
+Here is the code I then used to scrape iMDB for the data on each movie. The commenting throughout should hopefully explain what I am trying to do in each section:
+
+```
+for i in tqdm(range(len(movies)), desc="Processing"):
+    
+    # Open the driver to the appropriate link
+    driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()))
+    url = "https://www.imdb.com/title/" + movies["film_id"][i]
+    driver.get(url)
+    
+    # Getting the Movie Title
+    movies["Title"][i] = driver.find_element(By.XPATH, '//h1[contains(@data-testid, "hero__pageTitle")]').text
+    
+    # Getting the Parent Rating
+    parent = driver.find_elements(By.XPATH, '//a[contains(@href, "/parentalguide/certificates")]')
+    if len(parent) > 0:
+        movies["Rating"][i] = parent[0].text
+    
+    # Getting IMDB Rating
+    imdbs = driver.find_elements(By.XPATH, '//div[contains(@data-testid, "hero-rating-bar__aggregate-rating__score")]')
+    imdb_text = ''
+    for j in range(len(imdbs)):
+        imdb_text += imdbs[j].text
+    movies["IMDB"][i] = imdb_text
+    
+    # All the rest of values were convenintly marked with same "presentation" tag so we can make a list of 
+    # these tags and then find the value afterwards
+    vals = driver.find_elements(By.XPATH, '//li[contains(@role, "presentation")]')
+    for z in range(len(vals)):
+        vals[z] = vals[z].text
+
+    movies["Metascore"][i] = next((item for item in vals if "Metascore" in item), None)
+    movies["Noms"][i] = next((item for item in vals if "nominations" in item), None)
+    movies["Director"][i] = next((item for item in vals if "Director" in item), None)
+    movies["Writer"][i] = next((item for item in vals if "Writer" in item), None)
+    movies["Release"][i] = next((item for item in vals if "Release date\n" in item), None)
+    movies["Country"][i] = next((item for item in vals if "of origin\n" in item), None)
+    movies["Language"][i] = next((item for item in vals if "Language" in item), None)
+    movies["Budget"][i] = next((item for item in vals if "Budget\n" in item), None)
+    movies["Boxoffice"][i] = next((item for item in vals if "Gross worldwide\n" in item), None)
+    movies["Runtime"][i] = next((item for item in vals if "Runtime\n" in item), None)
+    movies["Color"][i] = next((item for item in vals if "Color\n" in item), None)
+    movies["Aspect"][i] = next((item for item in vals if "Aspect ratio\n" in item), None)
+```
+
+So, this code does work. Everything about it is functional but here is the problem- iMDB limits the amount of times you can visit different movie pages in a short period of time. If iMDB didn't limit me, I could probably scrape all 3000+ pages in a few minutes. Instead, the estimated time was about 140 hours due to iMDB slowing down the speed at which the websites loaded. I tried some clever tricks like putting on a time delay or switching between VPNs but the best I ever got was 300 pages in about 4 hours. So, it was necessary that I find a different solution.
+
+## Step 4 - Using the OMDB API For Individual Movie Data
+
+With my overcomplicated solution behind me, this is when I discovered the API of my dreams- OMDB (open movie database). This API was pretty much built for this project. I was able to give the API the iMDB film ID and it returned almost all of the information I wanted previously and more! You will need to sign up for an account to get an API key but it is all free. I would recommend donating to the creator if you are able to though because this API is wicked.
+
+Here is the code I used to fill up the different categories for each film:
+
+```
+# Making Dataframe of columns to populate
+movies_columns = ["Title", "Rating", "Release", "Runtime", "Genre", "Director", "Writer", 
+                  "Language", "Country", "Noms", "IMDB", "IMDB_Votes", "Rotten_Tomatoes",
+                  "Metascore", "Boxoffice"]
+
+# Creating a new DataFrame with blank columns and the same index as result_df
+movies = pd.DataFrame(index=result_df["film_id"], columns=movies_columns)
+
+for i in tqdm(range(len(movies)), desc="Processing"):
+    
+    # Creating the API request url
+    base_url = "http://www.omdbapi.com/"
+    movie_id = "?i=" + movies.index[i]
+    apikey = "&apikey=" # + API KEY
+    url = base_url + movie_id + apikey
+
+    # Requesting the data and making a json file
+    response = requests.get(url)
+    data = response.json() 
+    
+    #Populating the dataframe with the appropriate values
+    movies["Title"][i] = data["Title"]
+    movies["Rating"][i] = data["Rated"]
+    movies["Release"][i] = data["Released"]
+    movies["Runtime"][i] = data["Runtime"]
+    movies["Genre"][i] = data["Genre"]
+    movies["Director"][i] = data["Director"]
+    movies["Writer"][i] = data["Writer"]
+    movies["Language"][i] = data["Language"]
+    movies["Country"][i] = data["Country"]
+    movies["Noms"][i] = data["Awards"]
+    movies["IMDB"][i] = data["imdbRating"]
+    movies["IMDB_Votes"][i] = data["imdbVotes"]
+    movies["Rotten_Tomatoes"][i] = data["Ratings"][1]["Value"] if len(data["Ratings"]) >= 2 else None
+    movies["Metascore"][i] = data["Metascore"]
+    movies["Boxoffice"][i] = data["BoxOffice"] if "BoxOffice" in data else None
+```
+Just like that, I had a dataset for each film's unique data.
+
+<img width="788" alt="Screen Shot 2023-11-20 at 10 17 28 AM" src="https://github.com/carsonp4/carsonp4.github.io/assets/98862067/7fce08b2-6202-4c0e-b756-9da10e4fccfc">
+
+## Step 5 - Cleaning Individual Movie Data
