@@ -464,3 +464,136 @@ Just like that, I had a dataset for each film's unique data.
 <img width="788" alt="Screen Shot 2023-11-20 at 10 17 28 AM" src="https://github.com/carsonp4/carsonp4.github.io/assets/98862067/7fce08b2-6202-4c0e-b756-9da10e4fccfc">
 
 ## Step 5 - Cleaning Individual Movie Data
+
+Before I combined the movie award data with the individual movie data, I wanted to clean up the individual data so that it would be a bit better for machine learning. The goal is to turn all categorical data into binomial columns and make sure that the numeric data is properly formatted. Here is all the code I used to do that:
+
+```
+# Creating new dataframe to edit
+apidf = pd.read_csv("movies.csv")
+
+# Feature engenieering new date columns that could be helpful
+apidf['Release'] = pd.to_datetime(apidf['Release'], format='%d %b %Y')
+apidf['Release_Month'] = apidf['Release'].dt.month
+apidf['Release_Year'] = apidf['Release'].dt.year
+apidf['Release_DOY'] = apidf['Release'].dt.dayofyear
+
+# Convertign Runtime to numeric
+apidf['Runtime'] = apidf['Runtime'].str.extract('(\d+)').fillna(0).astype(int)
+
+# Making dummy variables for Parent Rating
+apidf['Rating'].fillna('Unknown', inplace=True)
+apidf = apidf.assign(Rating=apidf['Rating'].str.split(', ')).explode('Rating')
+Rating_indicators = pd.get_dummies(apidf['Rating'], prefix='Rating')
+apidf = pd.concat([apidf, Rating_indicators], axis=1)
+apidf.drop(columns=['Rating'], inplace=True)
+Rating_columns = apidf.columns[apidf.columns.str.startswith('Rating')]
+apidf[Rating_columns] = apidf.groupby(apidf.index)[Rating_columns].transform('sum')
+apidf.drop_duplicates(inplace=True)
+
+# Making dummy variables for Genres
+apidf['Genre'].fillna('Unknown', inplace=True)
+apidf = apidf.assign(Genre=apidf['Genre'].str.split(', ')).explode('Genre')
+genre_indicators = pd.get_dummies(apidf['Genre'], prefix='Genre')
+apidf = pd.concat([apidf, genre_indicators], axis=1)
+apidf.drop(columns=['Genre'], inplace=True)
+genre_columns = apidf.columns[apidf.columns.str.startswith('Genre')]
+apidf[genre_columns] = apidf.groupby(apidf.index)[genre_columns].transform('sum')
+apidf.drop_duplicates(inplace=True)
+
+# Making dummy variables for Directors
+apidf['Director'].fillna('Unknown', inplace=True)
+apidf = apidf.assign(Director=apidf['Director'].str.split(', ')).explode('Director')
+Director_indicators = pd.get_dummies(apidf['Director'], prefix='Director')
+apidf = pd.concat([apidf, Director_indicators], axis=1)
+apidf.drop(columns=['Director'], inplace=True)
+Director_columns = apidf.columns[apidf.columns.str.startswith('Director')]
+apidf[Director_columns] = apidf.groupby(apidf.index)[Director_columns].transform('sum')
+apidf.drop_duplicates(inplace=True)
+
+# Making dummy variables for Writers
+apidf['Writer'].fillna('Unknown', inplace=True)
+apidf = apidf.assign(Writer=apidf['Writer'].str.split(', ')).explode('Writer')
+Writer_indicators = pd.get_dummies(apidf['Writer'], prefix='Writer')
+apidf = pd.concat([apidf, Writer_indicators], axis=1)
+apidf.drop(columns=['Writer'], inplace=True)
+Writer_columns = apidf.columns[apidf.columns.str.startswith('Writer')]
+apidf[Writer_columns] = apidf.groupby(apidf.index)[Writer_columns].transform('sum')
+apidf.drop_duplicates(inplace=True)
+
+# Making dummy variables for Languages
+apidf['Language'].fillna('Unknown', inplace=True)
+apidf = apidf.assign(Language=apidf['Language'].str.split(', ')).explode('Language')
+Language_indicators = pd.get_dummies(apidf['Language'], prefix='Language')
+apidf = pd.concat([apidf, Language_indicators], axis=1)
+apidf.drop(columns=['Language'], inplace=True)
+Language_columns = apidf.columns[apidf.columns.str.startswith('Language')]
+apidf[Language_columns] = apidf.groupby(apidf.index)[Language_columns].transform('sum')
+apidf.drop_duplicates(inplace=True)
+
+# Making dummy variables for Countries
+apidf['Country'].fillna('Unknown', inplace=True)
+apidf = apidf.assign(Country=apidf['Country'].str.split(', ')).explode('Country')
+Country_indicators = pd.get_dummies(apidf['Country'], prefix='Country')
+apidf = pd.concat([apidf, Country_indicators], axis=1)
+apidf.drop(columns=['Country'], inplace=True)
+Country_columns = apidf.columns[apidf.columns.str.startswith('Country')]
+apidf[Country_columns] = apidf.groupby(apidf.index)[Country_columns].transform('sum')
+apidf.drop_duplicates(inplace=True)
+
+# Feature engenieering the total wins and total nominations data
+apidf['Total_Wins'] = apidf['Noms'].str.extract('(\d+) wins?').astype(float)
+apidf['Total_Noms'] = apidf['Noms'].str.extract('(\d+) nominations?').astype(float)
+
+# Cleaning different website rating values
+apidf['IMDB'] = apidf['IMDB'].astype(float)
+apidf['IMDB_Votes'] = apidf['IMDB_Votes'].str.replace(',', '').astype(float)
+apidf.loc[~apidf['Rotten_Tomatoes'].str.contains('%', na=False), 'Rotten_Tomatoes'] = 0
+apidf['Rotten_Tomatoes'] = apidf['Rotten_Tomatoes'].str.replace('%', '').astype(float)
+apidf['Metascore'] = apidf['Metascore'].astype(float)
+apidf['Boxoffice'] = apidf['Boxoffice'].str.replace(',', '').str.replace('$', '').astype(float)
+
+# Resetting index
+apidf.set_index(['film_id', 'Title'], inplace=True)
+
+# Removing old columns
+apidf.drop(columns=["Release", "Noms"], inplace=True)
+```
+
+And just like that, a huge data frame of directors, writers, languages, countries, and a bunch of other data has been created. Here is a sample of what it looks like:
+
+<img width="803" alt="Screen Shot 2023-11-20 at 10 22 23 AM" src="https://github.com/carsonp4/carsonp4.github.io/assets/98862067/671292cf-295e-40ba-b43a-5306a66e4e28">
+
+## Step 6 - Putting It All Together
+
+The last step of creating this monstrous data set is to put the film awards data with the individual movie data. Here is the code I used for that:
+
+```
+# Loading in two datasets to make Master Dataset
+apidf = pd.read_csv("apidf.csv")
+resultdf = pd.read_csv("result_df.csv")
+
+# Setting Index Columns To Merge On
+resultdf = resultdf.drop(resultdf.columns[0], axis=1)
+resultdf.set_index('film_id', inplace=True)
+apidf.set_index('film_id', inplace=True)
+
+# Merging two dataframe
+maindf = pd.merge(apidf, resultdf, left_index=True, right_index=True)
+
+# Setting Film Name as Index Column
+maindf.set_index(['Title'], inplace=True)
+```
+
+Here is a snippet of the gigantic data frame:
+
+<img width="979" alt="Screen Shot 2023-11-20 at 10 26 31 AM" src="https://github.com/carsonp4/carsonp4.github.io/assets/98862067/f7ad4f8f-7d50-42a7-9a68-f2bfffcc9538">
+
+## Step 7 - Ethical Considerations
+
+Before finishing this blog post, I just want to touch on the ethics of web scrapping this data. All of this data is published in many different locations on the internet and is widely available. By scrapping this data from IMDb, I am simply obtaining information that was taken from a different place as well. The data is not private or compromising in any way. I would consider this web scrapping to be completely ethical. 
+
+## Conclusion
+
+In this blog post, I demonstrated how I used web scrapping on iMDB and the OMDB API to create a dataset containing all the information on film awards from this century. The dataset was specifically designed so that it could be used for machine learning in the future. This dataset was obtained ethically from widely available sources. Further analysis will be done in the future to discover what exactly leads to a film winning, for example, an Oscar. For a bit of a sneak peek, here is a correlation matrix for nominated Oscar films. Seems that being nominated for Best Directing coincides with being nominated for Best Editing.
+
+![oscar_nom_corr](https://github.com/carsonp4/carsonp4.github.io/assets/98862067/68746650-0ac0-4b30-8cfb-6b6584fc9531)
